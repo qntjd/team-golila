@@ -1,0 +1,13 @@
+{
+  "data_dir": "data",
+  "token_dir": "tokens",
+  "output_dir": "outputs",
+  "model_dir": "models",
+  "vocab_size": 512,
+  "embed_dim": 256,
+  "n_heads": 8,
+  "n_layers": 4,
+  "lr": 0.0001,
+  "batch_size": 4,
+  "epochs": 3
+}
