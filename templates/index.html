@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Generator</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #111;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 60px auto;
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-size: 15px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-top: 6px;
+            border-radius: 6px;
+            border: none;
+            font-size: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 25px;
+            font-size: 16px;
+            background: #4caf50;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .result {
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        #loading {
+            display: none;
+            margin-top: 20px;
+            font-size: 18px;
+            text-align: center;
+            color: #ffa500;
+        }
+
+        #download {
+            display: none;
+            margin-top: 20px;
+        }
+
+        a.download-btn {
+            padding: 12px 20px;
+            background: #007bff;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+        }
+
+        a.download-btn:hover {
+            background: #0062cc;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>🎵 AI Music Generator</h2>
+
+        <label>장르(Genre)</label>
+        <select id="genre">
+            <option value="hiphop">HipHop</option>
+            <option value="jazz">Jazz</option>
+            <option value="pop">Pop</option>
+            <option value="rock">Rock</option>
+            <option value="lofi">Lo-fi</option>
+        </select>
+
+        <label>무드(Mood)</label>
+        <select id="mood">
+            <option value="happy">Happy</option>
+            <option value="sad">Sad</option>
+            <option value="calm">Calm</option>
+            <option value="dark">Dark</option>
+            <option value="energetic">Energetic</option>
+        </select>
+
+        <label>길이(Duration, 초 단위)</label>
+        <input type="number" id="duration" value="10" min="1">
+
+        <button onclick="generateMusic()">Generate Music</button>
+
+        <div id="loading">⏳ 음악 생성 중... 잠시만 기다려 주세요!</div>
+
+        <div class="result">
+            <audio id="player" controls style="display:none; width:100%;"></audio>
+
+            <div id="download">
+                <a id="downloadLink" class="download-btn" href="#" download>Download MP3</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function generateMusic() {
+            const genre = document.getElementById("genre").value;
+            const mood = document.getElementById("mood").value;
+            const duration = document.getElementById("duration").value;
+
+            document.getElementById("loading").style.display = "block";
+            document.getElementById("player").style.display = "none";
+            document.getElementById("download").style.display = "none";
+
+            fetch("/generate_music", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ genre, mood, duration })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("loading").style.display = "none";
+
+                    const file = data.file;
+                    const url = `/outputs/${file}`;
+
+                    // 오디오 플레이어 표시
+                    const player = document.getElementById("player");
+                    player.src = url;
+                    player.style.display = "block";
+
+                    // 다운로드 버튼 표시
+                    const dl = document.getElementById("download");
+                    dl.style.display = "block";
+
+                    const link = document.getElementById("downloadLink");
+                    link.href = url;
+                })
+                .catch(err => {
+                    alert("음악 생성 중 오류가 발생했습니다.");
+                    document.getElementById("loading").style.display = "none";
+                });
+        }
+    </script>
+</body>
+</html>
