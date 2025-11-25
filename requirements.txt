@@ -1,6 +1,5 @@
-flask
 torch
 miditok
 pretty_midi
 tqdm
-pyfluidsynthou
+pyfluidsynth
