@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>🎵 AI 음원 생성기</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; margin: 40px; }
+        select, input, button { margin: 8px; padding: 6px 10px; font-size: 15px; }
+        button { background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+        audio { margin-top: 20px; width: 80%; }
+    </style>
+</head>
+<body>
+    <h1>🎶 AI Music Generator</h1>
+
+    <div>
+        <label>🎧 장르:</label>
+        <select id="genre">
+            <option value="jazz">Jazz</option>
+            <option value="hiphop">HipHop</option>
+            <option value="classical">Classical</option>
+            <option value="pop">Pop</option>
+        </select>
+
+        <label>😊 기분:</label>
+        <select id="mood">
+            <option value="happy">Happy</option>
+            <option value="sad">Sad</option>
+            <option value="relax">Relax</option>
+        </select>
+
+        <label>⏱ 길이(초):</label>
+        <input type="number" id="duration" value="10" min="5" max="60">
+
+        <button onclick="generate()">음악 생성</button>
+    </div>
+
+    <div id="status"></div>
+    <audio id="player" controls></audio>
+
+    <script>
+        async function generate() {
+            const genre = document.getElementById("genre").value;
+            const mood = document.getElementById("mood").value;
+            const duration = parseInt(document.getElementById("duration").value);
+            
+            document.getElementById("status").innerText = "🎹 생성 중...";
+            
+            const res = await fetch("/generate_music", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ genre, mood, duration })
+            });
+            
+            const data = await res.json();
+            document.getElementById("status").innerText = data.message;
+            
+            // 최신 파일 자동 재생
+            setTimeout(loadLatest, 2000);
+        }
+
+        async function loadLatest() {
+            const res = await fetch("/latest");
+            const files = await res.json();
+            if (files.length > 0) {
+                const file = files[0];
+                const player = document.getElementById("player");
+                player.src = `/outputs/${file}`;
+                player.load();
+                player.play();
+                document.getElementById("status").innerText = `🎵 재생 중: ${file}`;
+            }
+        }
+    </script>
+</body>
+</html>
