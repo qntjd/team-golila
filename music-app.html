@@ -1,0 +1,275 @@
+<!-- CLEAN & FIXED VERSION (중복/오타 완전 제거) -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DAISM </title>
+  <style>
+    :root{--bg:#0b0f1a;--panel:#0f1724;--accent:#7c3aed;--muted:#9fb0ff}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter, Arial, sans-serif;background:linear-gradient(180deg,var(--bg),#061018);color:#ecf2ff}
+    .page{display:none;min-height:100vh;align-items:center;justify-content:center;padding:28px}
+    .active{display:flex}
+    .card{background:rgba(255,255,255,0.03);padding:20px;border-radius:12px;box-shadow:0 10px 30px rgba(2,6,23,0.6);max-width:980px;width:100%}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    button{background:var(--accent);border:none;padding:10px 14px;color:white;border-radius:8px;cursor:pointer}
+    button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06)}
+    input{padding:10px;border:none;border-radius:8px;width:100%;margin-bottom:8px}
+    .muted{color:var(--muted);font-size:13px}
+    .bgm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:16px}
+    .bgm-item{background:rgba(255,255,255,0.02);padding:12px;border-radius:10px;display:flex;flex-direction:column;gap:8px}
+  </style>
+</head>
+<body>
+
+  <!-- MAIN -->
+  <section id="main" class="page active">
+    <div class="card">
+      <h1>🎵 DAISM</h1>
+      <p class="muted">로그인 후 음악 제작이 가능합니다.</p>
+      <div class="row">
+        <button onclick="goTo('login')">음악 만들기</button>
+        <button class="ghost" onclick="goTo('login')">로그인</button>
+        <button class="ghost" onclick="goTo('signup')">회원가입</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOGIN -->
+  <section id="login" class="page">
+    <div class="card" style="max-width:420px">
+      <h2>로그인</h2>
+      <input id="loginEmail" placeholder="이메일" />
+      <input id="loginPass" type="password" placeholder="비밀번호" />
+      <div class="row">
+        <button onclick="doLogin()">로그인</button>
+        <button class="ghost" onclick="goTo('main')">메인으로</button>
+      </div>
+      <div style="text-align:right"><a onclick="goTo('signup')" style="cursor:pointer;color:var(--muted)">회원가입 →</a></div>
+    </div>
+  </section>
+
+  <!-- SIGNUP -->
+  <section id="signup" class="page">
+    <div class="card" style="max-width:420px">
+      <h2>회원가입</h2>
+      <input id="signEmail" placeholder="이메일" />
+      <input id="signPass" type="password" placeholder="비밀번호" />
+      <input id="signPass2" type="password" placeholder="비밀번호 확인" />
+      <div class="row">
+        <button onclick="doSignup()">가입하기</button>
+        <button class="ghost" onclick="goTo('main')">메인으로</button>
+      </div>
+      <div style="text-align:right"><a onclick="goTo('login')" style="cursor:pointer;color:var(--muted)">로그인 →</a></div>
+    </div>
+  </section>
+
+  <!-- MUSIC STUDIO -->
+  <section id="music" class="page">
+    <div class="card">
+      <h2>🎚 DAISM</h2>
+      <p class="muted">18 BGM + 업로드 기능 지원</p>
+      <input id="fileInput" type="file" accept="audio/*" />
+      <button class="ghost" onclick="stopAll()">모두 정지</button>
+      <button class="ghost" onclick="logout()">로그아웃</button>
+      <h3>장르 선택</h3>
+<div id="genreCards" class="bgm-grid"></div>
+<h3>분위기 선택</h3>
+<div id="moodCards" class="bgm-grid"></div>
+<button id="applySelection" class="ghost">생성하기<\/button>
+<button id="deleteSelected" class="ghost" style="margin-left:8px;">선택 삭제<\/button>
+<div id="bgmGrid" class="bgm-grid"></div>
+    </div>
+  </section>
+
+<script>
+// 페이지 이동
+function goTo(id){
+  if(id==='music' && localStorage.getItem('loggedIn')!=='true'){
+    alert('로그인 후 이용 가능합니다.');
+    id='login';
+  }
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// 새로고침 시 로그인 유지
+window.onload = () => {
+  if(localStorage.getItem('loggedIn') === 'true'){
+    goTo('music');
+  }
+};
+
+// 회원가입
+function doSignup(){
+  const email=document.getElementById('signEmail').value.trim();
+  const p1=document.getElementById('signPass').value;
+  const p2=document.getElementById('signPass2').value;
+  if(!email||!p1) return alert('입력 부족');
+  if(p1!==p2) return alert('비밀번호 불일치');
+  const users=JSON.parse(localStorage.getItem('users')||'{}');
+  if(users[email]) return alert('이미 존재하는 이메일');
+  users[email]={pass:p1};
+  localStorage.setItem('users',JSON.stringify(users));
+  alert('가입 완료! 로그인하세요.');
+  goTo('login');
+  document.getElementById('loginEmail').value=email;
+}
+
+// 로그인
+function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const users=JSON.parse(localStorage.getItem('users')||'{}');
+  if(users[email] && users[email].pass===pass){
+    localStorage.setItem('loggedIn','true');
+    alert('로그인 성공');
+    goTo('music');
+  } else alert('로그인 실패');
+}
+
+function logout(){ localStorage.removeItem('loggedIn'); goTo('main'); }
+
+// WebAudio 엔진
+const AudioCtx=window.AudioContext||window.webkitAudioContext;
+const ctx=new AudioCtx();
+const master=ctx.createGain(); master.connect(ctx.destination);
+const bgms=[];
+
+// 카드 선택
+const genres=['로파이','게임','힙합','EDM','호러','큐트','재즈','록','판타지','앰비언트'];
+const moods=['차분한','에너지있는','몽환적인','어두운','밝은','슬픈','장엄한','편안한','긴장감있는','미니멀한'];
+
+const genreWrap=document.getElementById('genreCards');
+const moodWrap=document.getElementById('moodCards');
+let selectedGenres=[], selectedMoods=[];
+
+function createCard(name, type){
+  const card = document.createElement('div');
+  card.className = 'bgm-item';
+  card.style.cursor = 'pointer';
+
+  const title = document.createElement('div');
+  title.textContent = name;
+
+  const del = document.createElement('button');
+  del.textContent = '삭제';
+  del.style.marginTop = '6px';
+  del.style.background = 'transparent';
+  del.style.border = '1px solid rgba(255,255,255,0.2)';
+  del.style.cursor = 'pointer';
+
+  function toggleSelect(){
+    if(type === 'genre'){
+      if(selectedGenres.includes(name)){
+        selectedGenres = selectedGenres.filter(v => v !== name);
+        card.style.border = 'none';
+      } else {
+        selectedGenres.push(name);
+        card.style.border = '1px solid var(--accent)';
+      }
+    } else {
+      if(selectedMoods.includes(name)){
+        selectedMoods = selectedMoods.filter(v => v !== name);
+        card.style.border = 'none';
+      } else {
+        selectedMoods.push(name);
+        card.style.border = '1px solid var(--accent)';
+      }
+    }
+  }
+
+  card.addEventListener('click', toggleSelect);
+
+  del.addEventListener('click', (e) => {
+    e.stopPropagation();
+
+    if(type === 'genre'){
+      selectedGenres = selectedGenres.filter(v => v !== name);
+    } else {
+      selectedMoods = selectedMoods.filter(v => v !== name);
+    }
+
+    card.remove();
+  });
+
+  card.append(title, del);
+  return card;
+}
+
+genres.forEach(g=>genreWrap.appendChild(createCard(g,'genre')));
+moods.forEach(m=>moodWrap.appendChild(createCard(m,'mood')));
+
+// 직접 입력 카드
+function createInputCard(type){
+  const card=document.createElement('div'); card.className='bgm-item';
+  const label=document.createElement('div'); label.textContent='직접 입력';
+  const input=document.createElement('input'); input.placeholder='입력...';
+  const btn=document.createElement('button'); btn.textContent='추가';
+
+  btn.onclick=()=>{
+    const val=input.value.trim(); if(!val) return alert('값을 입력하세요.');
+    const newCard=createCard(val,type);
+    if(type==='genre'){
+      selectedGenres.push(val); genreWrap.insertBefore(newCard,card);
+    } else {
+      selectedMoods.push(val); moodWrap.insertBefore(newCard,card);
+    }
+    input.value='';
+  };
+
+  card.style.height = '120px';
+  input.style.width = '100%';
+  btn.style.width = '100%';
+
+  card.append(label,input,btn);
+  return card;
+}
+
+genreWrap.appendChild(createInputCard('genre'));
+moodWrap.appendChild(createInputCard('mood'));
+
+// 적용 버튼 및 선택 삭제 기능
+
+document.getElementById('applySelection').onclick = () => {
+  if(selectedGenres.length===0 || selectedMoods.length===0)
+    return alert('장르와 분위기를 모두 선택하세요.');
+
+  alert(
+    '선택된 장르: ' + selectedGenres.join(', ') +
+    ' / 분위기: ' + selectedMoods.join(', ') + '\n해당 조건으로 BGM 생성 준비됨!'
+  );
+};
+
+// 선택 삭제 기능
+document.getElementById('deleteSelected').onclick = () => {
+  if(selectedGenres.length===0 && selectedMoods.length===0)
+    return alert('삭제할 항목이 없습니다.');
+
+  // 장르 카드 삭제
+  document.querySelectorAll('#genreCards .bgm-item').forEach(card => {
+    const name = card.firstChild.textContent;
+    if(selectedGenres.includes(name)) card.remove();
+  });
+
+  // 분위기 카드 삭제
+  document.querySelectorAll('#moodCards .bgm-item').forEach(card => {
+    const name = card.firstChild.textContent;
+    if(selectedMoods.includes(name)) card.remove();
+  });
+
+  selectedGenres = [];
+  selectedMoods = [];
+
+  alert('선택된 카드가 삭제되었습니다.');
+};
+
+// 전체 정지
+function stopAll(){
+  bgms.forEach(t=>t.stop());
+  document.querySelectorAll('.bgm-item button').forEach(b=>b.textContent='Play');
+}
+</script>
+</body>
+</html>
